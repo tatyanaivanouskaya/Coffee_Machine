@@ -2,16 +2,30 @@ package com.someproject.coffeemachine
 
 fun main() {
     val coffeeMachine = CoffeeMachine()
-    coffeeMachine.start()
+    var exit = false
+    while (!exit) {
+        if (!coffeeMachine.actionBuy) {
+            println("Write action (buy, fill, take, remaining, exit):")
+            exit = coffeeMachine.start(readln())
+        } else {
+            println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back - to main menu:")
+            exit = coffeeMachine.start(readln())
+        }
+    }
+
 }
 
+
 class CoffeeMachine(
-    var waterInMachine: Int = 400,
-    var milkInMachine: Int = 540,
-    var coffeeBeansInMachine: Int = 120,
-    var money: Int = 550,
-    var disposableCups: Int = 9
+    private var waterInMachine: Int = 400,
+    private var milkInMachine: Int = 540,
+    private var coffeeBeansInMachine: Int = 120,
+    private var money: Int = 550,
+    private var disposableCups: Int = 9,
+
 ) {
+    val actionBuy: Boolean get() = _actionBuy
+    private var _actionBuy = false
     override fun toString(): String {
         return (
                 """
@@ -25,50 +39,65 @@ class CoffeeMachine(
     """.trimIndent()
                 )
     }
-    fun start() {
-        var exit = false
-        fromBack@ while (!exit) {
-            println("Write action (buy, fill, take, remaining, exit):")
-            when (readln()) {
-                "buy" -> {
-                    println("What do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino, back - to main menu:")
-                    when (readln()) {
-                        "1" -> {
-                            val espresso = Espresso()
-                            getCoffee(espresso)
-                        }
-                        "2" -> {
-                            val latte = Latte()
-                            getCoffee(latte)
-                        }
-                        "3" -> {
-                            val cappuccino = Cappuccino()
-                            getCoffee(cappuccino)
-                        }
-                        "back" -> continue@fromBack
-                    }
-                }
-                "fill" -> {
-                    fill()
-                }
-                "take" -> {
-                    takeMoney()
-                }
-                "remaining" -> {println(toString())}
-                "exit" -> {
-                    exit = true
-                }
+
+    fun start(action: String): Boolean {
+        return when (action) {
+            "buy" -> {
+                _actionBuy = true
+                false
+            }
+            "1" -> {
+                val espresso = Espresso()
+                getCoffee(espresso)
+                _actionBuy = false
+                false
+            }
+            "2" -> {
+                val latte = Latte()
+                getCoffee(latte)
+                _actionBuy = false
+                false
+            }
+            "3" -> {
+                val cappuccino = Cappuccino()
+                getCoffee(cappuccino)
+                _actionBuy = false
+                false
+
+            }
+            "back" -> {
+                _actionBuy = false
+                false
+            }
+
+            "fill" -> {
+                fill()
+                false
+            }
+            "take" -> {
+                takeMoney()
+                false
+            }
+            "remaining" -> {
+                println(toString())
+                false
+            }
+            else -> {
+                true
             }
         }
+
     }
+
     private fun getCoffee(coffeeType: CoffeeType) {
         val enable = checkResources(coffeeType)
-        if (enable){
+        if (enable) {
             modifyCoffeeMachine(coffeeType)
         } else {
             checkNotEnough(coffeeType)
         }
     }
+
     private fun checkResources(coffeeType: CoffeeType): Boolean {
         return if (waterInMachine >= coffeeType.water &&
             milkInMachine >= coffeeType.milk &&
@@ -80,6 +109,7 @@ class CoffeeMachine(
             false
         }
     }
+
     private fun modifyCoffeeMachine(
         coffeeType: CoffeeType
     ) {
@@ -89,19 +119,22 @@ class CoffeeMachine(
         money += coffeeType.price
         disposableCups -= 1
     }
+
     private fun checkNotEnough(coffeeType: CoffeeType) {
-        if (waterInMachine < coffeeType.water){
+        if (waterInMachine < coffeeType.water) {
             println("Sorry, not enough water!")
         } else if (milkInMachine < coffeeType.milk) {
             println("Sorry, not enough milk!")
-        } else if (coffeeBeansInMachine < coffeeType.coffeeBeans){
+        } else if (coffeeBeansInMachine < coffeeType.coffeeBeans) {
             println("Sorry, not enough coffee beans!")
         }
     }
+
     private fun takeMoney() {
         println("I gave you \$${money}")
         money = 0
     }
+
     private fun fill() {
         println("Write how many ml of water you want to add:")
         val water = readln().toInt()
